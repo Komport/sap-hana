@@ -34,15 +34,15 @@ locals {
   sub_app_nsg_arm_id = local.sub_app_nsg_exists ? try(local.var_sub_app_nsg.arm_id, "") : ""
   sub_app_nsg_name   = local.sub_app_nsg_exists ? "" : try(local.var_sub_app_nsg.name, "nsg-app")
 
-  application_sid          = lookup(var.application, "sid", "HN1")
-  enable_deployment        = lookup(var.application, "enable_deployment", false)
-  scs_instance_number      = lookup(var.application, "scs_instance_number", "01")
-  ers_instance_number      = lookup(var.application, "ers_instance_number", "02")
-  scs_high_availability    = lookup(var.application, "scs_high_availability", false)
-  application_server_count = lookup(var.application, "application_server_count", 0)
-  webdispatcher_count      = lookup(var.application, "webdispatcher_count", 0)
-  vm_sizing                = lookup(var.application, "vm_sizing", "Default")
-  authentication = lookup(var.application, "authentication",
+  application_sid          = try(var.application.sid, "HN1")
+  enable_deployment        = try(var.application.enable_deployment, false)
+  scs_instance_number      = try(var.application.scs_instance_number, "01")
+  ers_instance_number      = try(var.application.ers_instance_number, "02")
+  scs_high_availability    = try(var.application.scs_high_availability, false)
+  application_server_count = try(var.application.application_server_count, 0)
+  webdispatcher_count      = try(var.application.webdispatcher_count, 0)
+  vm_sizing                = try(var.application.vm_sizing, "Default")
+  authentication = try(var.application.authentication,
     {
       "type"     = "key"
       "username" = "azureadm"

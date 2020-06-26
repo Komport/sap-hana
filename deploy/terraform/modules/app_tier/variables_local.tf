@@ -50,7 +50,7 @@ locals {
   # OS image for all Application Tier VMs
   os = merge({
     version = "latest"
-    }, lookup(var.application, "os", {
+    }, try(var.application.os, {
       publisher = "suse"
       offer     = "sles-sap-12-sp5"
       sku       = "gen1"

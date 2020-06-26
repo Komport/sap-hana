@@ -1,18 +1,18 @@
 # Creates app subnet of SAP VNET
 resource "azurerm_subnet" "subnet-sap-app" {
-  count                = local.enable_deployment ? (var.infrastructure.vnets.sap.subnet_app.is_existing ? 0 : 1) : 0
-  name                 = var.infrastructure.vnets.sap.subnet_app.name
+  count                = local.enable_deployment ? (local.sub_app_exists ? 0 : 1) : 0
+  name                 = local.sub_app_name
   resource_group_name  = var.vnet-sap[0].resource_group_name
   virtual_network_name = var.vnet-sap[0].name
-  address_prefixes     = [var.infrastructure.vnets.sap.subnet_app.prefix]
+  address_prefixes     = [local.sub_app_prefix]
 }
 
 # Imports data of existing SAP app subnet
 data "azurerm_subnet" "subnet-sap-app" {
-  count                = local.enable_deployment ? (var.infrastructure.vnets.sap.subnet_app.is_existing ? 1 : 0) : 0
-  name                 = split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]
-  resource_group_name  = split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[4]
-  virtual_network_name = split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[8]
+  count                = local.enable_deployment ? (local.sub_app_exists ? 1 : 0) : 0
+  name                 = split("/", local.sub_app_arm_id)[10]
+  resource_group_name  = split("/", local.sub_app_arm_id)[4]
+  virtual_network_name = split("/", local.sub_app_arm_id)[8]
 }
 
 /*
@@ -31,9 +31,9 @@ resource "azurerm_lb" "scs" {
     for_each = range(local.scs_high_availability ? 2 : 1)
     content {
       name                          = "${upper(local.application_sid)}_${frontend_ip_configuration.value == 0 ? "scs" : "ers"}-feip"
-      subnet_id                     = var.infrastructure.vnets.sap.subnet_app.is_existing ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
       private_ip_address_allocation = "Static"
-      private_ip_address            = cidrhost(var.infrastructure.vnets.sap.subnet_app.prefix, tonumber(frontend_ip_configuration.value) + local.ip_offsets.scs_lb)
+      private_ip_address            = cidrhost(local.sub_app_prefix, tonumber(frontend_ip_configuration.value) + local.ip_offsets.scs_lb)
     }
   }
 }
@@ -128,9 +128,9 @@ resource "azurerm_lb" "web" {
 
   frontend_ip_configuration {
     name                          = "sap${lower(local.application_sid)}web"
-    subnet_id                     = var.infrastructure.vnets.sap.subnet_app.is_existing ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
+    subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
     private_ip_address_allocation = "Static"
-    private_ip_address            = cidrhost(var.infrastructure.vnets.sap.subnet_app.prefix, local.ip_offsets.web_lb)
+    private_ip_address            = cidrhost(local.sub_app_prefix, local.ip_offsets.web_lb)
   }
 }
 

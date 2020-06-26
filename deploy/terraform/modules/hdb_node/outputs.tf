@@ -1,5 +1,5 @@
 output "subnet-sap-admin" {
-  value = local.sub_admin_exists ? data.azurerm_subnet.subnet-sap-admin[0] : azurerm_subnet.subnet-sap-admin[0]
+  value = local.sub_admin_exists ? try(data.azurerm_subnet.subnet-sap-admin[0], {}) : try(azurerm_subnet.subnet-sap-admin[0], {})
 }
 
 output "nics-dbnodes-admin" {
